@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寵物贈與契約生成</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    <script src="檔案位置/TaipeiSansTCBeta-normal.js"></script> <!-- 替換為您的字體文件路徑 -->
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        label { display: block; margin-top: 10px; }
+        input { width: 100%; padding: 8px; margin-top: 5px; }
+        button { margin-top: 20px; padding: 10px 20px; }
+        .contract { margin-top: 20px; white-space: pre-wrap; }
+        .signature-area { margin-top: 40px; }
+        .signature-line { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .signature-line div { border-top: 1px solid #000; width: 45%; padding-top: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>寵物贈與契約</h1>
+        <form id="contractForm">
+            <label for="giverName">贈與人姓名:</label>
+            <input type="text" id="giverName" required>
+
+            <label for="recipientName">受贈人姓名:</label>
+            <input type="text" id="recipientName" required>
+
+            <label for="petName">寵物姓名:</label>
+            <input type="text" id="petName" required>
+
+            <label for="contractDate">簽訂日期:</label>
+            <input type="date" id="contractDate" required>
+
+            <button type="button" onclick="generateContract()">生成契約</button>
+        </form>
+
+        <div id="contractOutput" class="contract"></div>
+
+        <div id="signatureArea" class="signature-area" style="display: none;">
+            
+            <button onclick="generatePDF()">下載 PDF</button>
+        </div>
+    </div>
+
+    <script>
+        function generateContract() {
+            const giverName = document.getElementById("giverName").value;
+            const recipientName = document.getElementById("recipientName").value;
+            const petName = document.getElementById("petName").value;
+            const contractDate = document.getElementById("contractDate").value;
+
+            const contractText = `
+                贈與人：${giverName}（以下簡稱甲方）受贈人：${recipientName}（以下簡稱乙方）
+                為贈與寵物：${petName}（以下簡稱丙方）簽訂日期：${contractDate}
+                簽訂附條件贈與契約，兩造約定條款如下：
+                1. 甲方同意將丙方贈與乙方，乙方應妥善照顧丙方，並提供至少一般照顧寵物之生活水準。如甲方探視環境後，主觀認為乙方之照顧方式及水準有所疑慮，得於一個月內解除契約，乙方且應無條件返還甲方上開贈與物。
+                2. 乙方不得將丙方贈與第三人，如因情事變更無法照顧，應返還甲方。如擅自將丙方贈與第三人，應給付甲方懲罰性違約金新台幣十萬元整。
+                3. 甲方於贈與後一年內，得於每月第一週週日於乙方指定之處所探訪丙方，甲方如因故不能探視，需提前一週告知乙方；如乙方因故不能接受探視，亦需提前一週告知甲方。上開未能探視之時間，甲、乙雙方皆須另行協調得探視之時間。如乙方無故不接受甲方之探視，並且另行協調時間，甲方得於催告後，解除本契約，乙方並應給付甲方懲罰性違約金十萬元整。
+                4. 乙方需於接受贈與三個月內，每週至少拍攝丙方照片一張，以電子郵件、簡訊、或親自交付等方式，交付甲方。
+                5. 受贈後一年內，丙方如有重大疾病或意外時，乙方應立即通知甲方，並且會同甲方至動物醫院讓丙方接受醫療，醫療費用由乙方負擔。丙方如有重大疾病或意外發生，乙方未能即時通知甲方，或未能移送丙方接受治療，而丙方死亡時，乙方應給付甲方二十萬元整。
+                6. 受贈後一年內，丙方如失蹤，乙方應立即通知甲方，並公告協尋。如因可歸責於乙方之原因，導致丙方失蹤，乙方應給付甲方二十萬元整。
+                7. 乙方於受贈時，應提供身份證件影印本供甲方留存。乙方並應告知甲方住居所及聯絡方式，如有變更，應立即通知甲方。如乙方未能即時提供甲方上開變更之訊息，甲方有權利解除本契約，並類推本契約第二條之規定，請求懲罰性違約金十萬元整。
+
+                ----------------------------     ----------------------------
+                    甲方簽名 (贈與人)                   乙方簽名 (受贈人)
+
+                簽署日期：___________________
+            `;
+
+            document.getElementById("contractOutput").innerText = contractText;
+            document.getElementById("signatureArea").style.display = "block";
+        }
+
+        function generatePDF() {
+            const element = document.getElementById('contractOutput');
+            const opt = {
+                margin: 1,
+                filename: '寵物贈與契約.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).set(opt).toPdf().get('pdf').then(pdf => {
+                const fontData = 'data:font/ttf;base64,PUT-YOUR-BASE64-ENCODED-FONT-HERE';
+                pdf.addFileToVFS('TaipeiSansTCBeta-normal.ttf', fontData);
+                pdf.addFont('TaipeiSansTCBeta-normal.ttf', 'TaipeiSans', 'normal');
+                pdf.setFont('TaipeiSans');
+                pdf.setFontSize(12);
+                pdf.text(10, 20, document.getElementById("contractOutput").innerText);
+            }).save();
+        }
+    </script>
+</body>
+</html>
